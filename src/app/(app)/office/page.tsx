@@ -34,6 +34,7 @@ export default async function OfficePage() {
       artifactContents={Object.fromEntries(versions)}
       notifications={view.notifications}
       recentEvents={view.recentEvents}
+      feed={view.feed}
       credits={view.credits}
       suggestions={view.suggestions}
     />

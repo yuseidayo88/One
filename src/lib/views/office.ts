@@ -15,6 +15,7 @@ import { getStore } from "@/lib/db";
 import { requireSession, type AuthContext } from "@/lib/auth/session";
 import { availableBalance, getWallet } from "@/lib/credits/ledger";
 import { suggestNextWork } from "@/lib/orchestrator/workflow";
+import { buildFeed, type FeedItem } from "@/lib/views/feed";
 
 export interface OfficeView {
   auth: AuthContext;
@@ -31,6 +32,8 @@ export interface OfficeView {
   recentEvents: TaskEvent[];
   credits: { balance: number; reserved: number; available: number };
   suggestions: { title: string; reason: string }[];
+  /** 今日のフィード（成果物・承認・引き継ぎ・提案を1本に集約） */
+  feed: FeedItem[];
 }
 
 export async function loadOffice(): Promise<OfficeView> {
@@ -78,8 +81,19 @@ export async function loadOffice(): Promise<OfficeView> {
   const wallet = await getWallet(store, orgId);
   const suggestions = await suggestNextWork(store, orgId);
 
+  const feed = buildFeed({
+    employees,
+    tasks,
+    artifacts,
+    approvals,
+    notifications,
+    events: recentEvents,
+    suggestions,
+  });
+
   return {
     auth,
+    feed,
     business: businesses[0] ?? null,
     employees,
     conversationId,

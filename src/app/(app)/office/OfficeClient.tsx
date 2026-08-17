@@ -21,6 +21,8 @@ import { ROLE_DEFINITIONS } from "@/lib/roles/registry";
 import { EmployeeParticles } from "@/components/particles/EmployeeParticles";
 import { WorkFlow } from "@/components/flow/WorkFlow";
 import { Markdown } from "@/components/markdown/Markdown";
+import { FeedList, type FeedFilter } from "@/components/feed/FeedList";
+import { countActionable, type FeedItem } from "@/lib/views/feed";
 import {
   EmployeeStatusBadge,
   EmptyState,
@@ -66,6 +68,7 @@ export function OfficeClient(props: {
   recentEvents: TaskEvent[];
   credits: { balance: number; reserved: number; available: number };
   suggestions: { title: string; reason: string }[];
+  feed: FeedItem[];
 }) {
   const router = useRouter();
   const [employees, setEmployees] = useState(props.employees);
@@ -88,6 +91,8 @@ export function OfficeClient(props: {
   const [insightFilter, setInsightFilter] = useState<
     "all" | "approvals" | "notifications" | "artifacts"
   >("all");
+  const [centerTab, setCenterTab] = useState<"chat" | "feed">("chat");
+  const [feedFilter, setFeedFilter] = useState<FeedFilter>("action");
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   /* ── task_events をポーリングし、UI を実データと同期させる ──
@@ -150,6 +155,7 @@ export function OfficeClient(props: {
   }, [messages.length, options.length]);
 
   const director = employees.find((e) => e.roleKey === "director") ?? null;
+  const actionableCount = countActionable(props.feed);
   const creditRatio =
     props.credits.balance > 0 ? props.credits.available / props.credits.balance : 0;
   const unreadNotifications = props.notifications.filter((n) => !n.read);
@@ -373,9 +379,78 @@ export function OfficeClient(props: {
             </span>
           </div>
           <WorkFlow tasks={tasks} employees={employees} events={events} />
+
+          <div className="mt-3 flex items-center gap-2">
+            <div
+              className="flex gap-0.5 rounded-full border p-1 ac-hairline"
+              style={{ background: "var(--color-bg-raised)" }}
+            >
+              {(
+                [
+                  ["chat", "統括AIと相談"],
+                  ["feed", "今日のフィード"],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setCenterTab(key)}
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] transition-colors"
+                  style={{
+                    background: centerTab === key ? "var(--color-bg-active)" : "transparent",
+                    color: centerTab === key ? "#ffffff" : "var(--color-text-muted)",
+                  }}
+                >
+                  {label}
+                  {key === "feed" && actionableCount > 0 && (
+                    <span
+                      className="flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
+                      style={{ background: "var(--color-caution)", color: "#1a1206" }}
+                    >
+                      {actionableCount}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {centerTab === "feed" && (
+              <div className="flex gap-1">
+                {(
+                  [
+                    ["action", "対応が必要"],
+                    ["all", "すべて"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    className="ac-filter-chip"
+                    data-active={feedFilter === key}
+                    onClick={() => setFeedFilter(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div ref={chatScrollRef} className="min-h-[46vh] flex-1 overflow-y-auto px-4 py-4 lg:min-h-0">
+          {centerTab === "feed" ? (
+            <FeedList
+              items={props.feed}
+              employees={employees}
+              filter={feedFilter}
+              busy={busy}
+              onOpenArtifact={(id) => setOpenArtifactId(id)}
+              onApprove={(id) => decideApproval(id, "approved")}
+              onReject={(id) => decideApproval(id, "rejected")}
+              onAskDirector={(text) => {
+                setCenterTab("chat");
+                setInput(text);
+              }}
+            />
+          ) : (
           <ul className="mx-auto flex max-w-[720px] flex-col gap-4">
             {messages.map((message) => {
               const isUser = message.author === "user";
@@ -493,6 +568,7 @@ export function OfficeClient(props: {
               <li className="text-center text-[12px] text-[var(--color-text-muted)]">{notice}</li>
             )}
           </ul>
+          )}
         </div>
 
         <div className="shrink-0 border-t px-4 py-3 ac-hairline">

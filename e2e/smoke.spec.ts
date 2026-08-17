@@ -28,6 +28,21 @@ test("オフィス画面で会社の状態を一画面で把握できる", async
   await expect(page.getByRole("button", { name: "確認する" }).first()).toBeVisible();
 });
 
+test("今日のフィードに社員の動きが集約され、その場で承認できる", async ({ page }) => {
+  await openOffice(page);
+  const center = page.getByLabel("統括AIとの会話");
+  await center.getByRole("button", { name: /今日のフィード/ }).click();
+
+  // 対応が必要なものが既定で表示される
+  await expect(center.getByText("承認待ち").first()).toBeVisible();
+  await expect(center.getByRole("button", { name: "承認する" }).first()).toBeVisible();
+
+  // すべて表示にすると、引き継ぎや着手も時系列で並ぶ
+  await center.getByRole("button", { name: "すべて" }).click();
+  await expect(center.getByText("引き継ぎ").first()).toBeVisible();
+  await expect(center.getByText("成果物").first()).toBeVisible();
+});
+
 test("成果物の通知から確認モーダルを開ける", async ({ page }) => {
   await openOffice(page);
   await page.getByRole("button", { name: "確認する" }).first().click();

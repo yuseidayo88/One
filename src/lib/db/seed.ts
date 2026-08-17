@@ -335,9 +335,9 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
     [marketingTaskId, "step", "情報の収集", byRole("marketing").id, "context"],
   ];
 
-  for (const [taskId, type, message, employeeId, nodeKey] of events) {
+  for (const [index, [taskId, type, message, employeeId, nodeKey]] of events.entries()) {
     await store.insert("task_events", {
-      id: stableId("row:8"),
+      id: stableId(`event:${index}`),
       organizationId: orgId,
       taskId,
       runId: null,
@@ -572,7 +572,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   ];
   for (const [kind, provider] of integrations) {
     await store.insert("integrations", {
-      id: stableId("row:20"),
+      id: stableId(`integration:${kind}`),
       organizationId: orgId,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       kind: kind as any,
