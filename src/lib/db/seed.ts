@@ -1,5 +1,5 @@
 import type { Store } from "@/lib/db/store";
-import { newId, nowIso, isoIn } from "@/lib/core/ids";
+import { nowIso, isoIn, stableId } from "@/lib/core/ids";
 import { hashPassword } from "@/lib/auth/password";
 import { ROLE_DEFINITIONS } from "@/lib/roles/registry";
 import type { EmployeeInstance, RoleKey, Task } from "@/lib/core/types";
@@ -17,8 +17,8 @@ export const DEMO_EMAIL = "founder@example.com";
 export const DEMO_PASSWORD = "demo1234";
 
 export async function seedDemoOrganization(store: Store): Promise<{ orgId: string; userId: string }> {
-  const userId = newId();
-  const orgId = newId();
+  const userId = stableId("user");
+  const orgId = stableId("org");
   const now = nowIso();
 
   await store.insert("profiles", {
@@ -42,14 +42,14 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("organization_members", {
-    id: newId(),
+    id: stableId("row:1"),
     organizationId: orgId,
     userId,
     role: "owner",
     createdAt: now,
   });
 
-  const businessId = newId();
+  const businessId = stableId("business");
   await store.insert("businesses", {
     id: businessId,
     organizationId: orgId,
@@ -75,7 +75,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
     createdBy: userId,
   });
 
-  const projectId = newId();
+  const projectId = stableId("project");
   await store.insert("projects", {
     id: projectId,
     organizationId: orgId,
@@ -109,14 +109,14 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   for (const roleKey of roleKeys) {
     const role = ROLE_DEFINITIONS[roleKey];
     const employee: EmployeeInstance = {
-      id: newId(),
+      id: stableId(`employee:${roleKey}`),
       organizationId: orgId,
       roleKey,
       name: role.name,
       specialty: specialties[roleKey] ?? role.defaultSpecialty,
       status: "idle",
       currentTaskId: null,
-      avatarSeed: newId().slice(0, 8),
+      avatarSeed: stableId(`avatar:${roleKey}`).slice(0, 8),
       hiredAt: now,
       createdAt: now,
       updatedAt: now,
@@ -129,7 +129,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   const byRole = (key: RoleKey) => employees.find((e) => e.roleKey === key)!;
 
   // ── 会話 ───────────────────────────────────────────
-  const conversationId = newId();
+  const conversationId = stableId("conversation");
   await store.insert("conversations", {
     id: conversationId,
     organizationId: orgId,
@@ -142,7 +142,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("messages", {
-    id: newId(),
+    id: stableId("row:2"),
     organizationId: orgId,
     conversationId,
     author: "employee",
@@ -154,7 +154,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("messages", {
-    id: newId(),
+    id: stableId("row:3"),
     organizationId: orgId,
     conversationId,
     author: "user",
@@ -166,7 +166,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("messages", {
-    id: newId(),
+    id: stableId("row:4"),
     organizationId: orgId,
     conversationId,
     author: "employee",
@@ -178,11 +178,11 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   // ── タスク ─────────────────────────────────────────
-  const researchTaskId = newId();
-  const marketingTaskId = newId();
-  const designTaskId = newId();
-  const engineerTaskId = newId();
-  const legalTaskId = newId();
+  const researchTaskId = stableId("task:research");
+  const marketingTaskId = stableId("task:marketing");
+  const designTaskId = stableId("task:design");
+  const engineerTaskId = stableId("task:engineer");
+  const legalTaskId = stableId("task:legal");
 
   const tasks: Task[] = [
     {
@@ -291,19 +291,19 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   for (const task of tasks) await store.insert("tasks", task);
 
   await store.insert("task_dependencies", {
-    id: newId(),
+    id: stableId("row:5"),
     organizationId: orgId,
     taskId: marketingTaskId,
     dependsOnTaskId: researchTaskId,
   });
   await store.insert("task_dependencies", {
-    id: newId(),
+    id: stableId("row:6"),
     organizationId: orgId,
     taskId: designTaskId,
     dependsOnTaskId: marketingTaskId,
   });
   await store.insert("task_dependencies", {
-    id: newId(),
+    id: stableId("row:7"),
     organizationId: orgId,
     taskId: engineerTaskId,
     dependsOnTaskId: designTaskId,
@@ -337,7 +337,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
 
   for (const [taskId, type, message, employeeId, nodeKey] of events) {
     await store.insert("task_events", {
-      id: newId(),
+      id: stableId("row:8"),
       organizationId: orgId,
       taskId,
       runId: null,
@@ -352,7 +352,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   }
 
   await store.insert("task_handoffs", {
-    id: newId(),
+    id: stableId("row:9"),
     organizationId: orgId,
     taskId: marketingTaskId,
     fromEmployeeId: byRole("market_research").id,
@@ -364,7 +364,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   // ── 成果物 ─────────────────────────────────────────
-  const artifactId = newId();
+  const artifactId = stableId("artifact:research");
   await store.insert("artifacts", {
     id: artifactId,
     organizationId: orgId,
@@ -395,7 +395,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("artifact_versions", {
-    id: newId(),
+    id: stableId("row:10"),
     organizationId: orgId,
     artifactId,
     version: 1,
@@ -408,7 +408,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
 
   // ── 承認待ち ───────────────────────────────────────
   await store.insert("approvals", {
-    id: newId(),
+    id: stableId("row:11"),
     organizationId: orgId,
     action: "publish_production",
     taskId: engineerTaskId,
@@ -434,7 +434,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
 
   // ── 通知 ───────────────────────────────────────────
   await store.insert("notifications", {
-    id: newId(),
+    id: stableId("row:12"),
     organizationId: orgId,
     userId,
     kind: "artifact_ready",
@@ -447,7 +447,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("notifications", {
-    id: newId(),
+    id: stableId("row:13"),
     organizationId: orgId,
     userId,
     kind: "approval_required",
@@ -461,7 +461,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
 
   // ── メモリ ─────────────────────────────────────────
   await store.insert("memories", {
-    id: newId(),
+    id: stableId("row:14"),
     organizationId: orgId,
     scope: "business",
     scopeRefId: businessId,
@@ -477,7 +477,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("memories", {
-    id: newId(),
+    id: stableId("row:15"),
     organizationId: orgId,
     scope: "employee",
     scopeRefId: byRole("market_research").id,
@@ -493,7 +493,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   // ── ワークトークン ─────────────────────────────────
-  const walletId = newId();
+  const walletId = stableId("wallet");
   const plan = PLANS.founder;
   await store.insert("credit_wallets", {
     id: walletId,
@@ -504,7 +504,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("credit_ledger", {
-    id: newId(),
+    id: stableId("row:16"),
     organizationId: orgId,
     type: "grant",
     bucket: "monthly",
@@ -520,7 +520,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("credit_ledger", {
-    id: newId(),
+    id: stableId("row:17"),
     organizationId: orgId,
     type: "settle",
     bucket: "system",
@@ -536,7 +536,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("model_usage", {
-    id: newId(),
+    id: stableId("row:18"),
     organizationId: orgId,
     taskId: researchTaskId,
     employeeId: byRole("market_research").id,
@@ -551,7 +551,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   });
 
   await store.insert("subscriptions", {
-    id: newId(),
+    id: stableId("row:19"),
     organizationId: orgId,
     stripeSubscriptionId: null,
     planKey: "founder",
@@ -572,7 +572,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
   ];
   for (const [kind, provider] of integrations) {
     await store.insert("integrations", {
-      id: newId(),
+      id: stableId("row:20"),
       organizationId: orgId,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       kind: kind as any,
