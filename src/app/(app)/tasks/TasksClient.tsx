@@ -414,7 +414,7 @@ function TaskCard({
         )}
         <span className="truncate text-[11px] text-[var(--color-text-faint)]">
           {employee?.name ?? "未割り当て"}
-          {role ? ` (${role.name})` : ""}
+          {role && role.name !== employee?.name ? `（${role.name}）` : ""}
         </span>
       </div>
       <div className="mt-1.5 flex flex-wrap gap-1">

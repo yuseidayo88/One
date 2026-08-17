@@ -81,7 +81,7 @@ export function OfficeClient(props: {
   const [selection, setSelection] = useState<Selection>(null);
   const [openArtifactId, setOpenArtifactId] = useState<string | null>(null);
   const [inspectorOpenMobile, setInspectorOpenMobile] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   /* ── task_events をポーリングし、UI を実データと同期させる ──
      Supabase 有効時は Realtime へ差し替え可能（同じ形の JSON を返す） */
@@ -135,8 +135,11 @@ export function OfficeClient(props: {
     };
   }, [props.recentEvents]);
 
+  // ページ全体ではなく、会話コンテナの中だけをスクロールする
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const el = chatScrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages.length, options.length]);
 
   const director = employees.find((e) => e.roleKey === "director") ?? null;
@@ -249,10 +252,10 @@ export function OfficeClient(props: {
   const openArtifact = props.artifacts.find((a) => a.id === openArtifactId) ?? null;
 
   return (
-    <div className="flex h-[calc(100vh-48px)] flex-col lg:flex-row">
+    <div className="flex flex-col lg:h-[calc(100vh-48px)] lg:flex-row">
       {/* ── 左: AI社員一覧 ─────────────────────────── */}
       <aside
-        className="shrink-0 overflow-y-auto border-b px-3 py-3.5 ac-hairline lg:w-[268px] lg:border-b-0 lg:border-r"
+        className="max-h-[38vh] shrink-0 overflow-y-auto border-b px-3 py-3.5 ac-hairline lg:max-h-none lg:w-[268px] lg:border-b-0 lg:border-r"
         aria-label="AI社員"
       >
         <SectionLabel>AI社員 {employees.length}名</SectionLabel>
@@ -343,7 +346,7 @@ export function OfficeClient(props: {
           <WorkFlow tasks={tasks} employees={employees} events={events} />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div ref={chatScrollRef} className="min-h-[46vh] flex-1 overflow-y-auto px-4 py-4 lg:min-h-0">
           <ul className="mx-auto flex max-w-[720px] flex-col gap-4">
             {messages.map((message) => {
               const isUser = message.author === "user";
@@ -460,7 +463,6 @@ export function OfficeClient(props: {
             {notice && (
               <li className="text-center text-[12px] text-[var(--color-text-muted)]">{notice}</li>
             )}
-            <div ref={chatEndRef} />
           </ul>
         </div>
 
@@ -480,7 +482,11 @@ export function OfficeClient(props: {
               }}
               maxLength={8000}
             />
-            <button className="ac-btn ac-btn-primary" onClick={send} disabled={busy || !input.trim()}>
+            <button
+              className="ac-btn ac-btn-primary shrink-0 whitespace-nowrap"
+              onClick={send}
+              disabled={busy || !input.trim()}
+            >
               送信
             </button>
           </div>
@@ -629,12 +635,11 @@ export function OfficeClient(props: {
       </aside>
 
       {!inspectorOpenMobile && (
-        <button
-          className="ac-btn fixed bottom-4 right-4 z-20 lg:hidden"
-          onClick={() => setInspectorOpenMobile(true)}
-        >
-          インスペクター
-        </button>
+        <div className="fixed bottom-4 right-4 z-20 lg:hidden">
+          <button className="ac-btn" onClick={() => setInspectorOpenMobile(true)}>
+            インスペクター
+          </button>
+        </div>
       )}
 
       {/* 成果物モーダル */}
@@ -836,9 +841,9 @@ function ArtifactActions({ artifactId, onDone }: { artifactId: string; onDone: (
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-3">
-      <dt className="shrink-0 text-[var(--color-text-faint)]">{label}</dt>
-      <dd className="text-right text-[var(--color-text-muted)]">{value}</dd>
+    <div className="flex gap-3">
+      <dt className="w-[92px] shrink-0 text-[var(--color-text-faint)]">{label}</dt>
+      <dd className="min-w-0 flex-1 break-words text-[var(--color-text-muted)]">{value}</dd>
     </div>
   );
 }

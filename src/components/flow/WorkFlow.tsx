@@ -69,6 +69,12 @@ export function WorkFlow({
   }, []);
 
   const height = 96;
+  // ラベルが重ならない最小間隔を確保し、足りなければ横スクロールさせる
+  const LABEL_WIDTH = 148;
+  const NODE_GAP = LABEL_WIDTH + 12;
+  const padding = LABEL_WIDTH / 2 + 6;
+  const contentWidth = Math.max(width, padding * 2 + NODE_GAP * Math.max(0, nodes.length - 1));
+  const step = nodes.length > 1 ? (contentWidth - padding * 2) / (nodes.length - 1) : 0;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -77,18 +83,16 @@ export function WorkFlow({
     if (!ctx) return;
 
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = width * dpr;
+    canvas.width = contentWidth * dpr;
     canvas.height = height * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const padding = 34;
-    const step = nodes.length > 1 ? (width - padding * 2) / (nodes.length - 1) : 0;
     const y = height / 2;
     let t = 0;
 
     const draw = (_time: number, delta: number) => {
       if (motionEnabled()) t += delta / 1000;
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, contentWidth, height);
 
       // 線（依存関係の流れ）
       for (let i = 0; i < nodes.length - 1; i++) {
@@ -181,7 +185,7 @@ export function WorkFlow({
 
     draw(0, 16);
     return subscribeFrame(draw);
-  }, [nodes, width]);
+  }, [nodes, contentWidth, padding, step]);
 
   if (nodes.length === 0) {
     return (
@@ -191,23 +195,20 @@ export function WorkFlow({
     );
   }
 
-  const padding = 34;
-  const step = nodes.length > 1 ? (width - padding * 2) / (nodes.length - 1) : 0;
-
   return (
     <div ref={containerRef} className="relative w-full overflow-x-auto">
-      <div style={{ minWidth: Math.max(width, nodes.length * 130) }}>
+      <div style={{ width: contentWidth }}>
         <canvas
           ref={canvasRef}
-          style={{ width, height, display: "block" }}
+          style={{ width: contentWidth, height, display: "block" }}
           aria-hidden="true"
         />
-        <div className="relative" style={{ width, height: 42 }}>
+        <div className="relative" style={{ width: contentWidth, height: 42 }}>
           {nodes.map((node, i) => (
             <div
               key={node.id}
               className="absolute top-0 -translate-x-1/2 text-center"
-              style={{ left: padding + step * i, width: Math.max(80, step - 6) }}
+              style={{ left: padding + step * i, width: LABEL_WIDTH }}
             >
               <p className="truncate text-[11px] leading-tight" title={node.label}>
                 {node.label}

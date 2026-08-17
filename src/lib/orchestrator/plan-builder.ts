@@ -139,7 +139,7 @@ export function buildDirectorPlan(requestText: string, rawContext: Record<string
         id: `hire:${rule.role}`,
         kind: "hire",
         title: `${roleDef.name}社員を採用する`,
-        description: `${rule.title} を担当します。${roleDef.headline}`,
+        description: rule.description,
         roleKey: rule.role,
         employeeId: null,
         reason: `この依頼には「${rule.title}」が必要ですが、現在この職種の社員が在籍していません。`,
@@ -153,7 +153,10 @@ export function buildDirectorPlan(requestText: string, rawContext: Record<string
       choices.push({
         id: `assign:${rule.id}`,
         kind: "assign",
-        title: `${available.name}（${roleDef.name}）に「${rule.title}」を任せる`,
+        title:
+          available.name === roleDef.name
+            ? `${roleDef.name}社員に「${rule.title}」を任せる`
+            : `${available.name}（${roleDef.name}）に「${rule.title}」を任せる`,
         description: rule.description,
         roleKey: rule.role,
         employeeId: available.id,

@@ -162,9 +162,9 @@ export function splitOwnAndForeign(
 }
 
 /** 最初に検証すべき仮説の雛形 */
-export function defaultHypotheses(businessSummary: string): string[] {
+export function defaultHypotheses(_businessSummary: string): string[] {
   return [
-    `想定顧客が、${businessSummary.slice(0, 40)}に対して実際に課題を感じている`,
+    "想定している顧客が、実際にこの課題で困っている",
     "現在の代替手段（手作業・既存ツール）に明確な不満がある",
     "提示する価格帯で支払い意思がある",
   ];

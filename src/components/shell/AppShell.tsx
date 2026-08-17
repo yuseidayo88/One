@@ -64,13 +64,15 @@ export function AppShell({
         className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b px-3 ac-hairline"
         style={{ background: "rgba(8,9,11,0.86)", backdropFilter: "blur(12px)" }}
       >
-        <Link href="/office" className="flex items-center gap-2 px-1">
+        <Link href="/office" className="flex shrink-0 items-center gap-2 px-1">
           <span
             className="inline-block h-4 w-4 rounded-[5px]"
             style={{ background: "linear-gradient(140deg,#6e8cff,#35c78a)" }}
             aria-hidden
           />
-          <span className="text-[13px] font-semibold tracking-tight">{appConfig.name}</span>
+          <span className="hidden whitespace-nowrap text-[13px] font-semibold tracking-tight sm:inline">
+            {appConfig.name}
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-0.5 md:flex" aria-label="メインナビゲーション">
@@ -92,7 +94,7 @@ export function AppShell({
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex min-w-0 items-center gap-2">
           <span className="ac-chip hidden sm:inline-flex" title="利用可能なワークトークン">
             {available.toLocaleString("ja-JP")} WT
           </span>
@@ -100,10 +102,15 @@ export function AppShell({
             className="ac-btn ac-btn-ghost hidden sm:inline-flex"
             onClick={() => setPaletteOpen(true)}
             aria-label="コマンドパレットを開く"
+            title="コマンドパレット（Cmd/Ctrl + K）"
           >
-            ⌘K
+            検索
           </button>
-          <Link href="/office#notifications" className="ac-btn ac-btn-ghost relative" aria-label="通知">
+          <Link
+            href="/office#notifications"
+            className="ac-btn ac-btn-ghost relative shrink-0 whitespace-nowrap"
+            aria-label="通知"
+          >
             通知
             {unread > 0 && (
               <span
@@ -114,7 +121,11 @@ export function AppShell({
               </span>
             )}
           </Link>
-          <button className="ac-btn" onClick={emergencyStop} title="全社員を停止する">
+          <button
+            className="ac-btn shrink-0 whitespace-nowrap"
+            onClick={emergencyStop}
+            title="全社員を停止する"
+          >
             全停止
           </button>
         </div>
