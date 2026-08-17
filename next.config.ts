@@ -34,10 +34,18 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          // HSTS は本番（HTTPS）のみ。開発は http://localhost で動くため、
+          // ここで送るとブラウザが localhost 全体を HTTPS へ強制し、
+          // 以後どの開発サーバーへも接続できなくなる（ERR_CONNECTION_REFUSED）。
+          // HSTS は host 単位で記録されるため、ポートを変えても回避できない。
+          ...(isDev
+            ? []
+            : [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains; preload",
+                },
+              ]),
         ],
       },
     ];

@@ -38,6 +38,21 @@ npm run dev                    # http://localhost:3000
 rm -rf .data && npm run dev
 ```
 
+### つながらないとき（ERR_CONNECTION_REFUSED）
+
+1. `npm run dev` を実行したターミナルに `Ready` が出ているか確認する
+2. **`http://localhost:3000`** を開く（`https://` ではありません）
+3. それでも `https://` へ飛ばされる場合は、ブラウザに localhost の HSTS 記録が
+   残っています。過去に localhost で HSTS を送るアプリを開くと起きます。
+   - Chrome / Edge: `chrome://net-internals/#hsts` を開き、
+     「Delete domain security policies」に `localhost` を入力して Delete
+   - Firefox: 履歴で `localhost` を右クリック →「このサイトを忘れる」
+   - 確認: `curl -I http://localhost:3000/login` に
+     `Strict-Transport-Security` が含まれないこと
+4. ポート 3000 が使用中の場合は `npm run dev -- --port 3100` で変更する
+
+> 本アプリは開発時に HSTS を送りません（本番の HTTPS 配信時のみ送信します）。
+
 ---
 
 ## 2. 検証コマンド
@@ -45,7 +60,7 @@ rm -rf .data && npm run dev
 ```bash
 npm run lint        # ESLint
 npm run typecheck   # tsc --noEmit (strict)
-npm run test        # Vitest（51ケース）
+npm run test        # Vitest（55ケース）
 npm run build       # 本番ビルド
 npm run verify      # 上記をまとめて実行
 
