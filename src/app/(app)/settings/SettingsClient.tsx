@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { SectionLabel } from "@/components/ui/primitives";
 
@@ -22,15 +22,18 @@ export function SettingsClient({
   isAdmin: boolean;
 }) {
   const router = useRouter();
-  const [motionOff, setMotionOff] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    setMotionOff(localStorage.getItem("ac_motion") === "off");
-  }, []);
+  // 設定は <html data-motion> が正。localStorage の値は layout の
+  // インラインスクリプトが hydration 前に反映しているため、
+  // ここでは DOM を外部ストアとして購読する（effect 内 setState を避ける）。
+  const motionOff = useSyncExternalStore(
+    subscribeToMotion,
+    getMotionSnapshot,
+    getMotionServerSnapshot,
+  );
 
   function toggleMotion(off: boolean) {
-    setMotionOff(off);
     if (off) {
       localStorage.setItem("ac_motion", "off");
       document.documentElement.dataset.motion = "off";
@@ -133,6 +136,23 @@ export function SettingsClient({
       </section>
     </div>
   );
+}
+
+function subscribeToMotion(onChange: () => void): () => void {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-motion"],
+  });
+  return () => observer.disconnect();
+}
+
+function getMotionSnapshot(): boolean {
+  return document.documentElement.dataset.motion === "off";
+}
+
+function getMotionServerSnapshot(): boolean {
+  return false;
 }
 
 function Row({ label, value }: { label: string; value: string }) {

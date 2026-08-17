@@ -7,7 +7,19 @@ import type { Store } from "@/lib/db/store";
 
 const PERSIST_PATH = path.join(process.cwd(), ".data", "dev-store.json");
 
-let storePromise: Promise<Store> | null = null;
+/**
+ * Store は必ずプロセス内で 1 つにする。
+ *
+ * Next.js はルートハンドラとページ(RSC)を別々のモジュールグラフへバンドルするため、
+ * モジュールスコープの変数だけでは同じプロセス内でもインスタンスが二重化する。
+ * その場合 MemoryStore が分裂し、「API で作成したユーザーがページ側に存在しない」
+ * といった不整合が起きる（Supabase 利用時は外部DBが真実なので影響しない）。
+ * そのため globalThis に載せて共有する。
+ */
+const STORE_KEY = Symbol.for("ai-company.store");
+
+type StoreGlobal = typeof globalThis & { [STORE_KEY]?: Promise<Store> | null };
+const storeGlobal = globalThis as StoreGlobal;
 
 function persistMemoryStore(store: MemoryStore): void {
   try {
@@ -65,8 +77,8 @@ async function createStore(): Promise<Store> {
 }
 
 export function getStore(): Promise<Store> {
-  if (!storePromise) storePromise = createStore();
-  return storePromise;
+  if (!storeGlobal[STORE_KEY]) storeGlobal[STORE_KEY] = createStore();
+  return storeGlobal[STORE_KEY];
 }
 
 /** テスト用: 独立したストアを作る */
@@ -75,5 +87,5 @@ export function createTestStore(): MemoryStore {
 }
 
 export function resetStoreForTests(): void {
-  storePromise = null;
+  storeGlobal[STORE_KEY] = null;
 }

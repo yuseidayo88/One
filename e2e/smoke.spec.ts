@@ -83,3 +83,35 @@ test("レスポンシブ: 狭い画面でも横スクロールが発生しない
   );
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+/**
+ * 新規登録の導線は保存済みセッションを使わない（未ログイン状態から始める）。
+ *
+ * 回帰防止: Next のバンドル分割により、ルートハンドラとページで Store が
+ * 二重化すると「登録は成功するがオンボーディングへ入れない」状態になる。
+ */
+test.describe("新規登録", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("登録するとオンボーディングへ進み、事業を入力できる", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByRole("button", { name: "新規登録" }).click();
+
+    await page.fill('input[type="email"]', `e2e-${Date.now()}@example.com`);
+    await page.fill('input[type="password"]', "testpass1234");
+    const textInputs = page.locator('input[type="text"], input:not([type])');
+    await textInputs.nth(0).fill("テスト太郎");
+    await textInputs.nth(1).fill("テストカンパニー");
+    await page.getByRole("button", { name: "アカウントを作成" }).click();
+
+    // API で作成したユーザーがページ側からも見えていること
+    await page.waitForURL("**/onboarding", { timeout: 20000 });
+    await expect(page.getByRole("heading", { name: "どんな事業をやりたいですか？" })).toBeVisible();
+
+    await page.locator("textarea").fill(
+      "個人経営の美容室向けに、予約と集客を支援するSaaSを作りたい。市場調査から始めたい。",
+    );
+    await page.getByRole("button", { name: "次へ" }).click();
+    await expect(page.getByRole("button", { name: "統括AIに相談する" })).toBeVisible();
+  });
+});

@@ -91,8 +91,13 @@ export function EmployeeParticles({
   className,
 }: EmployeeParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // 描画ループ（rAF）から最新のステータスを読むための箱。
+  // レンダー中に ref を書き換えないよう、更新は effect で行う。
   const stateRef = useRef({ status, roleKey });
-  stateRef.current = { status, roleKey };
+  useEffect(() => {
+    stateRef.current = { status, roleKey };
+  }, [status, roleKey]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

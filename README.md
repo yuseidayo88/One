@@ -176,6 +176,7 @@ supabase db push
 - **AI 固有**: Role Policy による allowlist、外部データの `<untrusted_external_data>` 分離、外部データ由来の操作は再承認、実行直前の安全性再検査
 - **監査**: ログイン / 採用 / 配属 / ツール呼び出し / メール送信 / 公開 / ドメイン操作 / 支払い / 削除 / Safety 判定 / 承認 / モデル利用 / クレジット変更
 - **ヘッダー**: CSP、HSTS、X-Frame-Options、nosniff、Referrer-Policy、Permissions-Policy（`next.config.ts`）
+- **依存関係**: Next.js 16 系（`npm audit` 0 件）。定期的に `npm audit` を実行してください
 
 ### 承認が必須の操作
 
@@ -222,7 +223,7 @@ supabase db push
 - **多言語化**: 日本語のみ。文言は各コンポーネントに直書きのため、
   本格対応時はメッセージカタログへの抽出が必要です。
 - **MemoryStore は開発専用**: 暗号化・バックアップの対象外です。本番では必ず Supabase を使用してください。
-- **依存脆弱性検査**: `npm audit` は CI へ未組み込みです。
+- **依存脆弱性検査**: 現時点で `npm audit` は 0 件ですが、CI へは未組み込みです。
 
 ---
 
