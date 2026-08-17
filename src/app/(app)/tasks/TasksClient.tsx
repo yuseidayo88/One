@@ -90,12 +90,12 @@ export function TasksClient({
       <header className="mb-4 flex flex-wrap items-center gap-3">
         <h1 className="text-[16px] font-semibold tracking-tight">タスク</h1>
 
-        <div className="flex gap-0.5 rounded-lg p-0.5" style={{ background: "var(--color-bg-raised)" }}>
+        <div className="flex gap-0.5 rounded-full border p-1 ac-hairline" style={{ background: "var(--color-bg-raised)" }}>
           {(["kanban", "list", "table", "timeline"] as ViewMode[]).map((mode) => (
             <button
               key={mode}
               onClick={() => setView(mode)}
-              className="rounded-md px-2.5 py-1 text-[12px] transition-colors"
+              className="rounded-full px-3 py-1 text-[12px] transition-colors"
               style={{
                 background: view === mode ? "var(--color-bg-active)" : "transparent",
                 color: view === mode ? "var(--color-text)" : "var(--color-text-muted)",
@@ -153,7 +153,7 @@ export function TasksClient({
                   </span>
                 </div>
                 <div
-                  className="flex min-h-[120px] flex-col gap-2 rounded-xl p-2"
+                  className="flex min-h-[120px] flex-col gap-2 rounded-2xl p-2"
                   style={{ background: "var(--color-bg-raised)" }}
                 >
                   {columnTasks.map((task) => (
@@ -297,7 +297,7 @@ export function TasksClient({
               <button className="ac-btn" onClick={() => changeStatus(detail.id, "queued")}>
                 待機に戻す
               </button>
-              <button className="ac-btn ac-btn-primary" onClick={() => runTask(detail.id)}>
+              <button className="ac-btn ac-btn-go" onClick={() => runTask(detail.id)}>
                 実行する
               </button>
             </div>

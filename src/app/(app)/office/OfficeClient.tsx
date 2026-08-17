@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type {
   Approval,
@@ -23,7 +24,10 @@ import { Markdown } from "@/components/markdown/Markdown";
 import {
   EmployeeStatusBadge,
   EmptyState,
+  Glyphs,
+  IconTile,
   Modal,
+  NotificationTile,
   SafetyBadge,
   SectionLabel,
   TaskStatusBadge,
@@ -81,6 +85,9 @@ export function OfficeClient(props: {
   const [selection, setSelection] = useState<Selection>(null);
   const [openArtifactId, setOpenArtifactId] = useState<string | null>(null);
   const [inspectorOpenMobile, setInspectorOpenMobile] = useState(false);
+  const [insightFilter, setInsightFilter] = useState<
+    "all" | "approvals" | "notifications" | "artifacts"
+  >("all");
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   /* ── task_events をポーリングし、UI を実データと同期させる ──
@@ -143,6 +150,8 @@ export function OfficeClient(props: {
   }, [messages.length, options.length]);
 
   const director = employees.find((e) => e.roleKey === "director") ?? null;
+  const creditRatio =
+    props.credits.balance > 0 ? props.credits.available / props.credits.balance : 0;
   const unreadNotifications = props.notifications.filter((n) => !n.read);
 
   async function send() {
@@ -252,7 +261,7 @@ export function OfficeClient(props: {
   const openArtifact = props.artifacts.find((a) => a.id === openArtifactId) ?? null;
 
   return (
-    <div className="flex flex-col lg:h-[calc(100vh-48px)] lg:flex-row">
+    <div className="flex flex-col lg:h-[calc(100vh-56px)] lg:flex-row">
       {/* ── 左: AI社員一覧 ─────────────────────────── */}
       <aside
         className="max-h-[38vh] shrink-0 overflow-y-auto border-b px-3 py-3.5 ac-hairline lg:max-h-none lg:w-[268px] lg:border-b-0 lg:border-r"
@@ -324,6 +333,26 @@ export function OfficeClient(props: {
             </ul>
           </div>
         )}
+
+        <div className="mt-5">
+          <SectionLabel>ワークトークン</SectionLabel>
+          <div className="ac-panel p-3">
+            <div className="flex items-center gap-3">
+              <CreditRing ratio={creditRatio} />
+              <div className="min-w-0">
+                <p className="text-[14px] font-semibold leading-tight tabular-nums">
+                  {props.credits.available.toLocaleString("ja-JP")}
+                </p>
+                <p className="text-[10.5px] text-[var(--color-text-faint)]">
+                  / {props.credits.balance.toLocaleString("ja-JP")} WT
+                </p>
+              </div>
+            </div>
+            <Link href="/usage" className="ac-btn mt-2.5 h-8 w-full text-[12px]">
+              プランをアップグレード
+            </Link>
+          </div>
+        </div>
       </aside>
 
       {/* ── 中央: 統括AIとの会話 ───────────────────── */}
@@ -367,7 +396,7 @@ export function OfficeClient(props: {
                     </span>
                   </div>
                   <div
-                    className="rounded-xl px-3.5 py-2.5 text-[13.5px] leading-relaxed"
+                    className="rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed"
                     style={{
                       background: isUser ? "var(--color-bg-raised)" : "var(--color-bg-panel)",
                       border: "1px solid var(--color-line)",
@@ -449,7 +478,7 @@ export function OfficeClient(props: {
                       選択中 {selectedOptions.size} 件
                     </span>
                     <button
-                      className="ac-btn ac-btn-primary"
+                      className="ac-btn ac-btn-go"
                       onClick={execute}
                       disabled={busy || selectedOptions.size === 0}
                     >
@@ -467,28 +496,67 @@ export function OfficeClient(props: {
         </div>
 
         <div className="shrink-0 border-t px-4 py-3 ac-hairline">
-          <div className="mx-auto flex max-w-[720px] items-end gap-2">
-            <textarea
-              className="ac-input resize-none"
-              rows={2}
-              placeholder="統括AIに相談する（Enter で送信 / Shift+Enter で改行）"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  void send();
-                }
+          <div className="mx-auto max-w-[720px]">
+            {options.length === 0 && !input && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {["市場を調査してほしい", "集客の戦略を考えたい", "収支計画を作ってほしい"].map(
+                  (suggestion) => (
+                    <button
+                      key={suggestion}
+                      className="ac-chip cursor-pointer transition-colors hover:bg-[var(--color-bg-hover)]"
+                      onClick={() => setInput(suggestion)}
+                    >
+                      <span
+                        className="inline-block h-2 w-2 rounded-[3px]"
+                        style={{ background: "linear-gradient(140deg,#3d7dff,#34d27b)" }}
+                        aria-hidden
+                      />
+                      {suggestion}
+                    </button>
+                  ),
+                )}
+              </div>
+            )}
+            <div
+              className="flex items-end gap-2 rounded-[18px] border p-2 pl-4"
+              style={{
+                borderColor: "var(--color-line-strong)",
+                background: "var(--color-bg-raised)",
               }}
-              maxLength={8000}
-            />
-            <button
-              className="ac-btn ac-btn-primary shrink-0 whitespace-nowrap"
-              onClick={send}
-              disabled={busy || !input.trim()}
             >
-              送信
-            </button>
+              <textarea
+                className="max-h-36 flex-1 resize-none bg-transparent py-1.5 text-[13.5px] outline-none placeholder:text-[var(--color-text-faint)]"
+                rows={2}
+                placeholder="統括AIに相談する（Enter で送信 / Shift+Enter で改行）"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    void send();
+                  }
+                }}
+                maxLength={8000}
+              />
+              <button
+                aria-label="送信"
+                title="送信"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-40"
+                style={{ background: "var(--color-accent)", color: "#ffffff" }}
+                onClick={send}
+                disabled={busy || !input.trim()}
+              >
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M8 12.8V3.2M8 3.2 3.8 7.4M8 3.2l4.2 4.2"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -508,13 +576,45 @@ export function OfficeClient(props: {
           </button>
         </div>
 
+        <div className="mb-4 flex flex-wrap gap-1">
+          {(
+            [
+              ["all", "すべて"],
+              ["approvals", "承認"],
+              ["notifications", "通知"],
+              ["artifacts", "成果物"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              className="ac-filter-chip"
+              data-active={insightFilter === key}
+              onClick={() => setInsightFilter(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {props.approvals.length > 0 && (
-          <div className="mb-5">
+          <div
+            className="mb-5"
+            style={
+              insightFilter === "all" || insightFilter === "approvals"
+                ? undefined
+                : { display: "none" }
+            }
+          >
             <SectionLabel>承認待ち {props.approvals.length} 件</SectionLabel>
             <ul className="flex flex-col gap-2">
               {props.approvals.map((approval) => (
                 <li key={approval.id} className="ac-panel p-3">
-                  <p className="text-[12.5px] font-medium">{approval.title}</p>
+                  <div className="flex items-center gap-2.5">
+                    <IconTile color="var(--color-caution)" glyph={Glyphs.warn} />
+                    <p className="min-w-0 flex-1 text-[12.5px] font-medium leading-snug">
+                      {approval.title}
+                    </p>
+                  </div>
                   <dl className="mt-2 flex flex-col gap-1 text-[11.5px]">
                     <Row label="実行内容" value={approval.what} />
                     <Row label="影響範囲" value={approval.affects} />
@@ -538,7 +638,7 @@ export function OfficeClient(props: {
                   )}
                   <div className="mt-2.5 flex gap-2">
                     <button
-                      className="ac-btn ac-btn-primary flex-1"
+                      className="ac-btn ac-btn-go flex-1"
                       onClick={() => decideApproval(approval.id, "approved")}
                       disabled={busy}
                     >
@@ -558,7 +658,14 @@ export function OfficeClient(props: {
           </div>
         )}
 
-        <div className="mb-5">
+        <div
+          className="mb-5"
+          style={
+            insightFilter === "all" || insightFilter === "notifications"
+              ? undefined
+              : { display: "none" }
+          }
+        >
           <SectionLabel>通知</SectionLabel>
           {props.notifications.length === 0 ? (
             <EmptyState title="通知はありません" />
@@ -566,20 +673,25 @@ export function OfficeClient(props: {
             <ul className="flex flex-col gap-1.5">
               {props.notifications.slice(0, 8).map((notification) => (
                 <li key={notification.id} className="ac-panel p-2.5">
-                  <p className="text-[12px] font-medium leading-snug">{notification.title}</p>
-                  {notification.body && (
-                    <p className="mt-0.5 text-[11px] text-[var(--color-text-faint)]">
-                      {notification.body}
-                    </p>
-                  )}
-                  {notification.linkArtifactId && (
-                    <button
-                      className="ac-btn mt-2 h-7 text-[11.5px]"
-                      onClick={() => setOpenArtifactId(notification.linkArtifactId)}
-                    >
-                      確認する
-                    </button>
-                  )}
+                  <div className="flex items-start gap-2.5">
+                    <NotificationTile kind={notification.kind} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12px] font-medium leading-snug">{notification.title}</p>
+                      {notification.body && (
+                        <p className="mt-0.5 text-[11px] text-[var(--color-text-faint)]">
+                          {notification.body}
+                        </p>
+                      )}
+                      {notification.linkArtifactId && (
+                        <button
+                          className="ac-btn mt-2 h-7 text-[11.5px]"
+                          onClick={() => setOpenArtifactId(notification.linkArtifactId)}
+                        >
+                          確認する
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -591,7 +703,14 @@ export function OfficeClient(props: {
           )}
         </div>
 
-        <div className="mb-5">
+        <div
+          className="mb-5"
+          style={
+            insightFilter === "all" || insightFilter === "artifacts"
+              ? undefined
+              : { display: "none" }
+          }
+        >
           <SectionLabel>完成した成果物</SectionLabel>
           {props.artifacts.length === 0 ? (
             <EmptyState title="まだ成果物はありません" />
@@ -602,14 +721,19 @@ export function OfficeClient(props: {
                 return (
                   <li key={artifact.id}>
                     <button
-                      className="ac-panel w-full p-2.5 text-left transition-colors hover:bg-[var(--color-bg-hover)]"
+                      className="ac-panel flex w-full items-center gap-2.5 p-2.5 text-left transition-colors hover:bg-[var(--color-bg-hover)]"
                       onClick={() => setOpenArtifactId(artifact.id)}
                     >
-                      <p className="truncate text-[12px] font-medium">{artifact.title}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-[var(--color-text-faint)]">
-                        {employee?.name ?? "AI社員"} ・ v{artifact.currentVersion} ・{" "}
-                        {artifact.usedWorkTokens.toLocaleString("ja-JP")} WT
-                      </p>
+                      <IconTile color="var(--color-accent)" glyph={Glyphs.doc} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[12px] font-medium">
+                          {artifact.title}
+                        </span>
+                        <span className="mt-0.5 block truncate text-[11px] text-[var(--color-text-faint)]">
+                          {employee?.name ?? "AI社員"} ・ v{artifact.currentVersion} ・{" "}
+                          {artifact.usedWorkTokens.toLocaleString("ja-JP")} WT
+                        </span>
+                      </span>
                     </button>
                   </li>
                 );
@@ -832,10 +956,32 @@ function ArtifactActions({ artifactId, onDone }: { artifactId: string; onDone: (
       <button className="ac-btn" disabled={busy} onClick={() => act("publish")}>
         公開
       </button>
-      <button className="ac-btn ac-btn-primary" disabled={busy} onClick={() => act("approve")}>
+      <button className="ac-btn ac-btn-go" disabled={busy} onClick={() => act("approve")}>
         承認する
       </button>
     </div>
+  );
+}
+
+function CreditRing({ ratio }: { ratio: number }) {
+  const r = 15.5;
+  const c = 2 * Math.PI * r;
+  const clamped = Math.max(0, Math.min(1, ratio));
+  return (
+    <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden>
+      <circle cx="21" cy="21" r={r} stroke="var(--color-bg-active)" strokeWidth="5" fill="none" />
+      <circle
+        cx="21"
+        cy="21"
+        r={r}
+        stroke="var(--color-go)"
+        strokeWidth="5"
+        fill="none"
+        strokeLinecap="round"
+        strokeDasharray={`${c * clamped} ${c}`}
+        transform="rotate(-90 21 21)"
+      />
+    </svg>
   );
 }
 

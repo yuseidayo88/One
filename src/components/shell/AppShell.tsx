@@ -61,7 +61,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen flex-col">
       <header
-        className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b px-3 ac-hairline"
+        className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b px-4 ac-hairline"
         style={{ background: "rgba(8,9,11,0.86)", backdropFilter: "blur(12px)" }}
       >
         <Link href="/office" className="flex shrink-0 items-center gap-2 px-1">
@@ -75,16 +75,20 @@ export function AppShell({
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-0.5 md:flex" aria-label="メインナビゲーション">
+        <nav
+          className="hidden items-center gap-0.5 rounded-full border p-1 ac-hairline xl:flex"
+          style={{ background: "var(--color-bg-raised)" }}
+          aria-label="メインナビゲーション"
+        >
           {nav.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.key}
                 href={item.href}
-                className="rounded-md px-2.5 py-1.5 text-[12.5px] transition-colors"
+                className="rounded-full px-3 py-1 text-[12.5px] transition-colors"
                 style={{
-                  color: active ? "var(--color-text)" : "var(--color-text-muted)",
+                  color: active ? "#ffffff" : "var(--color-text-muted)",
                   background: active ? "var(--color-bg-active)" : "transparent",
                 }}
               >
@@ -122,7 +126,7 @@ export function AppShell({
             )}
           </Link>
           <button
-            className="ac-btn shrink-0 whitespace-nowrap"
+            className="ac-btn ac-btn-danger shrink-0 whitespace-nowrap"
             onClick={emergencyStop}
             title="全社員を停止する"
           >
@@ -133,7 +137,7 @@ export function AppShell({
 
       {/* 狭い画面向けナビ */}
       <nav
-        className="flex gap-1 overflow-x-auto border-b px-3 py-2 md:hidden ac-hairline"
+        className="flex gap-1 overflow-x-auto border-b px-3 py-2 xl:hidden ac-hairline"
         aria-label="メインナビゲーション（モバイル）"
       >
         {nav.map((item) => {
@@ -142,7 +146,7 @@ export function AppShell({
             <Link
               key={item.key}
               href={item.href}
-              className="shrink-0 rounded-md px-2.5 py-1 text-[12px]"
+              className="shrink-0 rounded-full px-3 py-1 text-[12px]"
               style={{
                 color: active ? "var(--color-text)" : "var(--color-text-muted)",
                 background: active ? "var(--color-bg-active)" : "transparent",

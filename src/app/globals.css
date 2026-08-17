@@ -2,36 +2,40 @@
 
 /* ============================================================
    AI Company — デザイントークン
-   ダークモードのみ。静かで高品質な業務ソフトの質感。
-   深みのある黒・グレー / 控えめな境界線 / アクセントは必要な場所だけ。
+   ダークのみ。丸みの強いカード、ピル型ナビ、色付きティントバッジ、
+   ドットグリッドのワークフローキャンバスを基調にする。
    ============================================================ */
 
 @theme {
-  --color-bg: #08090b;
-  --color-bg-raised: #0d0f12;
-  --color-bg-panel: #111317;
-  --color-bg-hover: #16191e;
-  --color-bg-active: #1c2027;
+  --color-bg: #0a0b0e;
+  --color-bg-raised: #101217;
+  --color-bg-panel: #14161c;
+  --color-bg-hover: #1a1d24;
+  --color-bg-active: #242836;
 
-  --color-line: #1e2229;
-  --color-line-strong: #2a2f38;
+  --color-line: #20242d;
+  --color-line-strong: #2f3440;
 
-  --color-text: #e8eaed;
-  --color-text-muted: #9aa1ac;
-  --color-text-faint: #6b7280;
+  --color-text: #eef1f5;
+  --color-text-muted: #9aa3b1;
+  --color-text-faint: #6c7481;
 
-  --color-accent: #6e8cff;
-  --color-accent-soft: #2a3555;
-  --color-positive: #35c78a;
-  --color-caution: #e0a34a;
-  --color-warn: #e8814a;
-  --color-danger: #e5645c;
+  --color-accent: #3d7dff;
+  --color-accent-soft: #152449;
+  /* Publish / 実行 系の「進める」アクション */
+  --color-go: #b8f068;
+  --color-positive: #34d27b;
+  --color-caution: #f2a33c;
+  --color-warn: #f2793d;
+  --color-danger: #f26b5e;
+  --color-info: #4da3ff;
+  --color-violet: #a78bfa;
 
   --font-sans: ui-sans-serif, -apple-system, "Hiragino Kaku Gothic ProN",
     "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  --radius-panel: 12px;
+  --radius-panel: 16px;
 }
 
 :root {
@@ -57,7 +61,7 @@ body {
 *:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 ::selection {
@@ -73,13 +77,13 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #232830;
+  background: #252a33;
   border-radius: 999px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #313843;
+  background: #333a46;
   background-clip: content-box;
 }
 
@@ -122,25 +126,6 @@ body {
   }
 }
 
-@keyframes ac-pulse-soft {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes ac-flow {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 40px 0;
-  }
-}
-
 .ac-enter {
   animation: ac-scale-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
   will-change: transform, opacity, filter;
@@ -168,7 +153,6 @@ html[data-motion="off"] *::after {
    ─────────────────────────────────────────────────── */
 
 @layer components {
-
   .ac-panel {
     background: var(--color-bg-panel);
     border: 1px solid var(--color-line);
@@ -184,9 +168,9 @@ html[data-motion="off"] *::after {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 34px;
-    padding: 0 14px;
-    border-radius: 8px;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 12px;
     border: 1px solid var(--color-line-strong);
     background: var(--color-bg-raised);
     color: var(--color-text);
@@ -195,6 +179,7 @@ html[data-motion="off"] *::after {
     transition:
       background 160ms ease,
       border-color 160ms ease,
+      filter 160ms ease,
       transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
     cursor: pointer;
   }
@@ -213,12 +198,36 @@ html[data-motion="off"] *::after {
   .ac-btn-primary {
     background: var(--color-accent);
     border-color: var(--color-accent);
-    color: #0a0d16;
+    color: #ffffff;
     font-weight: 600;
   }
   .ac-btn-primary:hover:not(:disabled) {
-    background: #8099ff;
-    border-color: #8099ff;
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    filter: brightness(1.1);
+  }
+
+  /* Publish / 実行する / 承認する 系の「進める」アクション */
+  .ac-btn-go {
+    background: var(--color-go);
+    border-color: var(--color-go);
+    color: #17210a;
+    font-weight: 650;
+  }
+  .ac-btn-go:hover:not(:disabled) {
+    background: var(--color-go);
+    border-color: var(--color-go);
+    filter: brightness(1.06);
+  }
+
+  .ac-btn-danger {
+    background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-danger) 36%, transparent);
+    color: var(--color-danger);
+  }
+  .ac-btn-danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+    border-color: color-mix(in srgb, var(--color-danger) 48%, transparent);
   }
 
   .ac-btn-ghost {
@@ -235,8 +244,8 @@ html[data-motion="off"] *::after {
     width: 100%;
     background: var(--color-bg-raised);
     border: 1px solid var(--color-line-strong);
-    border-radius: 8px;
-    padding: 9px 12px;
+    border-radius: 12px;
+    padding: 9px 13px;
     color: var(--color-text);
     font-size: 14px;
     font-family: inherit;
@@ -254,13 +263,81 @@ html[data-motion="off"] *::after {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    height: 22px;
-    padding: 0 8px;
-    border-radius: 6px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
     border: 1px solid var(--color-line-strong);
+    background: var(--color-bg-raised);
     font-size: 11px;
     color: var(--color-text-muted);
     white-space: nowrap;
+  }
+
+  /* 色付きティントのステータスバッジ（--badge に色を渡す） */
+  .ac-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--badge, #9aa3b1);
+    background: color-mix(in srgb, var(--badge, #9aa3b1) 14%, transparent);
+  }
+  .ac-badge svg {
+    flex-shrink: 0;
+  }
+
+  /* Insights タイムラインのフィルタチップ */
+  .ac-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+      background 140ms ease,
+      color 140ms ease;
+  }
+  .ac-filter-chip:hover {
+    background: var(--color-bg-hover);
+  }
+  .ac-filter-chip[data-active="true"] {
+    background: var(--color-accent);
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  /* 通知・承認カードの色付きアイコンタイル（--tile に色を渡す） */
+  .ac-icon-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    flex-shrink: 0;
+    color: var(--tile, var(--color-text-muted));
+    background: color-mix(in srgb, var(--tile, #9aa3b1) 15%, transparent);
+  }
+  .ac-icon-tile svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ワークフローキャンバスのドットグリッド */
+  .ac-dotgrid {
+    background-color: var(--color-bg-raised);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.4px);
+    background-size: 18px 18px;
   }
 }
 
@@ -315,18 +392,20 @@ html[data-motion="off"] *::after {
   border-left: 2px solid var(--color-line-strong);
   color: var(--color-text-muted);
   font-size: 13px;
+  border-radius: 0 8px 8px 0;
+  background: var(--color-bg-raised);
 }
 .ac-prose code {
   font-family: var(--font-mono);
   font-size: 12.5px;
   background: var(--color-bg-active);
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 .ac-prose pre {
-  background: #0a0c0f;
+  background: #0b0d11;
   border: 1px solid var(--color-line);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 14px;
   overflow-x: auto;
   margin: 0 0 14px;

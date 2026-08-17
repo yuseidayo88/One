@@ -46,13 +46,13 @@ export function LoginForm({ demo }: { demo: { email: string; password: string } 
 
   return (
     <form onSubmit={submit} className="ac-panel flex flex-col gap-3 p-5 ac-enter">
-      <div className="mb-1 flex gap-1 rounded-lg p-1" style={{ background: "var(--color-bg)" }}>
+      <div className="mb-1 flex gap-1 rounded-full p-1" style={{ background: "var(--color-bg)" }}>
         {(["login", "signup"] as const).map((m) => (
           <button
             key={m}
             type="button"
             onClick={() => setMode(m)}
-            className="flex-1 rounded-md py-1.5 text-[12.5px] transition-colors"
+            className="flex-1 rounded-full py-1.5 text-[12.5px] transition-colors"
             style={{
               background: mode === m ? "var(--color-bg-active)" : "transparent",
               color: mode === m ? "var(--color-text)" : "var(--color-text-muted)",

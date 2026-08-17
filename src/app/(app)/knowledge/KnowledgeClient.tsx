@@ -56,7 +56,7 @@ export function KnowledgeClient({
             {(["all", "organization", "business", "project", "employee", "run"] as const).map((s) => (
               <button
                 key={s}
-                className="rounded-md px-2.5 py-1 text-[12px] transition-colors"
+                className="rounded-full px-3 py-1 text-[12px] transition-colors"
                 style={{
                   background: scope === s ? "var(--color-bg-active)" : "transparent",
                   color: scope === s ? "var(--color-text)" : "var(--color-text-muted)",

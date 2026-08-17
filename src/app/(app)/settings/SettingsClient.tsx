@@ -89,12 +89,20 @@ export function SettingsClient({
               自動では品質を下げないため、必要な場合はここで切り替えてください。
             </span>
           </span>
-          <input
-            type="checkbox"
-            checked={motionOff}
-            onChange={(e) => toggleMotion(e.target.checked)}
-            className="h-4 w-4 shrink-0"
-          />
+          <button
+            type="button"
+            role="switch"
+            aria-checked={motionOff}
+            onClick={() => toggleMotion(!motionOff)}
+            className="relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors"
+            style={{ background: motionOff ? "var(--color-accent)" : "var(--color-bg-active)" }}
+          >
+            <span
+              className="absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
+              style={{ transform: motionOff ? "translateX(22px)" : "translateX(2px)" }}
+              aria-hidden
+            />
+          </button>
         </label>
         <dl className="mt-2 flex flex-col gap-1.5 text-[12.5px]">
           <Row label="テーマ" value="ダーク（初期リリースはダークのみ）" />

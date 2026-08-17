@@ -454,7 +454,7 @@ export function OnboardingFlow() {
             戻る
           </button>
           <button
-            className="ac-btn ac-btn-primary"
+            className="ac-btn ac-btn-go"
             onClick={execute}
             disabled={busy || selected.size === 0}
           >
