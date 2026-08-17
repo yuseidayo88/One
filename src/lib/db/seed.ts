@@ -134,6 +134,7 @@ export async function seedDemoOrganization(store: Store): Promise<{ orgId: strin
     id: conversationId,
     organizationId: orgId,
     employeeId: null,
+    projectId,
     title: "統括AIとの相談",
     kind: "director",
     createdAt: now,

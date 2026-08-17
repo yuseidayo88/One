@@ -3,6 +3,7 @@ import { defineHandler, jsonOk } from "@/lib/api/handler";
 import { getStore } from "@/lib/db";
 import { newId, nowIso } from "@/lib/core/ids";
 import { planFromRequest } from "@/lib/orchestrator/workflow";
+import { setProjectStatus } from "@/lib/projects/service";
 
 const schema = z.object({
   organizationId: z.string().uuid().optional(),
@@ -43,6 +44,18 @@ export const POST = defineHandler({ schema, rateLimitMax: 40 }, async ({ body, a
     requesterEmployeeId: body.employeeId ?? null,
     isOnboarding: body.isOnboarding ?? false,
   });
+
+  // 相談が始まったら計画中へ、実行できる提案が出たら実行待ちへ進める。
+  // ここではまだ採用も課金もしない（「実行する」を押すまで何も始まらない）。
+  if (conversation.projectId) {
+    const project = await store.get("projects", orgId, conversation.projectId);
+    if (project?.status === "draft") {
+      await setProjectStatus(store, orgId, project.id, "planning");
+    }
+    if (!result.blocked && result.options.length > 0) {
+      await setProjectStatus(store, orgId, conversation.projectId, "ready");
+    }
+  }
 
   const employees = await store.list("employee_instances", orgId, { filter: { roleKey: "director" } });
 

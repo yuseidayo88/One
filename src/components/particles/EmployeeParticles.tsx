@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { EmployeeStatus, RoleKey } from "@/lib/core/types";
 import { subscribeFrame, motionEnabled } from "@/components/particles/ticker";
 
@@ -99,6 +99,19 @@ export function EmployeeParticles({
     stateRef.current = { status, roleKey };
   }, [status, roleKey]);
 
+  // 画面外のキャンバスは描画しない（社員が増えても負荷が線形に増えないようにする）
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => setVisible(entries.some((e) => e.isIntersecting)),
+      { rootMargin: "96px" },
+    );
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -153,20 +166,52 @@ export function EmployeeParticles({
         ctx.fill();
       }
 
-      // エラー時は輪郭を強調（色だけに依存しないよう、UI 側でも文字表示する）
-      if (stateRef.current.status === "error") {
+      // ── ステータス固有の重ね描き ──
+      // 色だけに意味を持たせないよう、UI 側では必ず文字のバッジも並べる。
+      const current = stateRef.current.status;
+
+      if (current === "awaiting_approval") {
+        // 承認待ち: 判断を待つ光が、社長（キャンバス上方向）へ向かって流れる
+        for (let i = 0; i < 3; i++) {
+          const phase = (t * 0.55 + i / 3) % 1;
+          ctx.fillStyle = hexAlpha("#e0a23c", (1 - phase) * 0.85);
+          ctx.beginPath();
+          ctx.arc(cx, cy - phase * maxR * 1.25, 1.5 - phase * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      if (current === "error") {
+        // エラー: 流れが途切れていることを、欠けた輪で示す
         ctx.strokeStyle = hexAlpha("#e5645c", 0.5 + 0.3 * breath);
         ctx.lineWidth = 1;
+        for (const [from, to] of [
+          [0.05, 0.62],
+          [0.78, 1.28],
+          [1.5, 1.9],
+        ] as const) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, maxR, from * Math.PI, to * Math.PI);
+          ctx.stroke();
+        }
+      }
+
+      if (current === "done") {
+        // 完了: 光が中心へ収束して落ち着く
+        const phase = 1 - ((t * 0.4) % 1);
+        ctx.strokeStyle = hexAlpha(visual.colors[1], phase * 0.5);
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
+        ctx.arc(cx, cy, maxR * phase, 0, Math.PI * 2);
         ctx.stroke();
       }
     };
 
     // 初回は必ず 1 フレーム描く（動き無効時も静止画が出る）
     draw(0, 16);
+    if (!visible) return;
     return subscribeFrame(draw);
-  }, [roleKey, seed, size]);
+  }, [roleKey, seed, size, visible]);
 
   return (
     <canvas

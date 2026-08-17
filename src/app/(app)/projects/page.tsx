@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { requireSession } from "@/lib/auth/session";
 import { getStore } from "@/lib/db";
-import { TaskStatusBadge, SectionLabel } from "@/components/ui/primitives";
+import { EmptyState, SectionLabel, TaskStatusBadge } from "@/components/ui/primitives";
 import { ROLE_DEFINITIONS } from "@/lib/roles/registry";
+import { PROJECT_STATUS_LABEL } from "@/lib/projects/status";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +13,7 @@ export default async function ProjectsPage() {
   const orgId = auth.organization.id;
 
   const [projects, tasks, artifacts, employees, business] = await Promise.all([
-    store.list("projects", orgId),
+    store.list("projects", orgId, { orderBy: "createdAt", direction: "desc" }),
     store.list("tasks", orgId),
     store.list("artifacts", orgId),
     store.list("employee_instances", orgId),
@@ -19,8 +21,13 @@ export default async function ProjectsPage() {
   ]);
 
   return (
-    <div className="mx-auto w-full px-4 py-5" style={{ maxWidth: 1100 }}>
-      <h1 className="mb-4 text-[16px] font-semibold tracking-tight">プロジェクト</h1>
+    <div className="mx-auto w-full px-4 py-5" style={{ maxWidth: 1000 }}>
+      <div className="mb-4 flex items-center gap-2">
+        <h1 className="flex-1 text-[16px] font-semibold tracking-tight">プロジェクト</h1>
+        <Link href="/projects/new" className="ac-btn ac-btn-primary h-8 text-[12px]">
+          新しい業務
+        </Link>
+      </div>
 
       {business[0] && (
         <section className="ac-panel mb-5 p-4">
@@ -63,11 +70,19 @@ export default async function ProjectsPage() {
           return (
             <section key={project.id} className="ac-panel p-4">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-[14px] font-medium">{project.name}</h2>
-                <span className="ac-chip">{project.status}</span>
+                <Link
+                  href={`/projects/${project.id}`}
+                  className="text-[14px] font-medium hover:underline"
+                >
+                  {project.name}
+                </Link>
+                <span className="ac-chip">{PROJECT_STATUS_LABEL[project.status]}</span>
                 <span className="ml-auto text-[12px] text-[var(--color-text-muted)]">
                   {done} / {projectTasks.length} 完了
                 </span>
+                <Link href={`/projects/${project.id}`} className="ac-btn h-8 text-[12px]">
+                  開く
+                </Link>
               </div>
               <p className="mt-1 text-[12.5px] text-[var(--color-text-muted)]">
                 {project.description}
@@ -133,9 +148,10 @@ export default async function ProjectsPage() {
           );
         })}
         {projects.length === 0 && (
-          <p className="text-[13px] text-[var(--color-text-muted)]">
-            プロジェクトはまだありません。
-          </p>
+          <EmptyState
+            title="プロジェクトはまだありません"
+            description="「新しい業務」から、やりたいことを統括AIに相談できます。"
+          />
         )}
       </div>
     </div>

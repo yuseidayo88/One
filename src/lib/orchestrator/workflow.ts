@@ -20,6 +20,7 @@ import { buildDirectorPlan } from "@/lib/orchestrator/plan-builder";
 import { isHighCost } from "@/config/pricing";
 import { notify } from "@/lib/notifications/service";
 import { DIRECTOR_SYSTEM_PROMPT } from "@/lib/orchestrator/prompts";
+import { canTransitionProject } from "@/lib/projects/status";
 
 /**
  * 統括AIによるタスクルーティング（サーバー側ワークフロー）。
@@ -310,6 +311,8 @@ export interface ExecuteDecisionResult {
   createdTasks: Task[];
   requiresApproval: boolean;
   message: string;
+  /** active へ進んだプロジェクト（統括AIを右パネルへ移す判断に使う） */
+  activatedProjectId: string | null;
 }
 
 /**
@@ -329,6 +332,7 @@ export async function executeDecision(
       createdTasks: [],
       requiresApproval: false,
       message: "この提案は安全上の理由で実行できません。",
+      activatedProjectId: null,
     };
   }
   if (decision.status === "executed") {
@@ -339,6 +343,7 @@ export async function executeDecision(
       createdTasks: tasks,
       requiresApproval: false,
       message: "この提案はすでに実行済みです。",
+      activatedProjectId: input.projectId ?? null,
     };
   }
 
@@ -480,6 +485,16 @@ export async function executeDecision(
     executedAt: nowIso(),
   });
 
+  // ここで初めてプロジェクトが動き出す。
+  // 統括AIの表示位置はこの status から導出されるため、
+  // 中央 → 右パネルへ移るのはこの更新が成功した後だけ。
+  if (input.projectId) {
+    const project = await store.get("projects", organizationId, input.projectId);
+    if (project && canTransitionProject(project.status, "active")) {
+      await store.update("projects", organizationId, project.id, { status: "active" });
+    }
+  }
+
   await notify(store, {
     organizationId,
     userId,
@@ -493,6 +508,7 @@ export async function executeDecision(
     createdTasks,
     requiresApproval,
     message: `${hiredEmployees.length}名の採用と${createdTasks.length}件のタスク作成が完了しました。`,
+    activatedProjectId: input.projectId ?? null,
   };
 }
 
@@ -526,6 +542,7 @@ export async function hireEmployee(
     id: newId(),
     organizationId: input.organizationId,
     employeeId: employee.id,
+    projectId: null,
     title: `${employee.name}との会話`,
     kind: "employee",
     createdAt: nowIso(),

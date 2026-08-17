@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SectionLabel } from "@/components/ui/primitives";
+import { applyMotionLevel, useMotionLevel } from "@/components/motion/useMotionLevel";
+import {
+  MOTION_LEVELS,
+  MOTION_LEVEL_DESCRIPTION,
+  MOTION_LEVEL_LABEL,
+} from "@/lib/motion/level";
 
 export function SettingsClient({
   organizationName,
@@ -27,21 +33,7 @@ export function SettingsClient({
   // 設定は <html data-motion> が正。localStorage の値は layout の
   // インラインスクリプトが hydration 前に反映しているため、
   // ここでは DOM を外部ストアとして購読する（effect 内 setState を避ける）。
-  const motionOff = useSyncExternalStore(
-    subscribeToMotion,
-    getMotionSnapshot,
-    getMotionServerSnapshot,
-  );
-
-  function toggleMotion(off: boolean) {
-    if (off) {
-      localStorage.setItem("ac_motion", "off");
-      document.documentElement.dataset.motion = "off";
-    } else {
-      localStorage.removeItem("ac_motion");
-      delete document.documentElement.dataset.motion;
-    }
-  }
+  const motionLevel = useMotionLevel();
 
   async function logout() {
     setBusy(true);
@@ -84,29 +76,56 @@ export function SettingsClient({
 
       <section className="ac-panel mb-4 p-4">
         <SectionLabel>表示と動き</SectionLabel>
-        <label className="flex items-center justify-between gap-4 py-1.5">
-          <span className="text-[12.5px]">
-            アニメーションを無効にする
+        <fieldset>
+          <legend className="text-[12.5px]">
+            アニメーション
             <span className="mt-0.5 block text-[11.5px] text-[var(--color-text-faint)]">
-              粒子アニメーションや画面遷移の演出を停止します。
-              自動では品質を下げないため、必要な場合はここで切り替えてください。
+              端末の状態を見て自動で品質を下げることはしません。ここでの選択だけを使います。
             </span>
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={motionOff}
-            onClick={() => toggleMotion(!motionOff)}
-            className="relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors"
-            style={{ background: motionOff ? "var(--color-accent)" : "var(--color-bg-active)" }}
-          >
-            <span
-              className="absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
-              style={{ transform: motionOff ? "translateX(22px)" : "translateX(2px)" }}
-              aria-hidden
-            />
-          </button>
-        </label>
+          </legend>
+          <div className="mt-2 flex flex-col gap-1.5" role="radiogroup" aria-label="アニメーション">
+            {MOTION_LEVELS.map((level) => (
+              <button
+                key={level}
+                type="button"
+                role="radio"
+                aria-checked={motionLevel === level}
+                onClick={() => applyMotionLevel(level)}
+                className="flex items-start gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors"
+                style={{
+                  borderColor:
+                    motionLevel === level ? "var(--color-accent)" : "var(--color-line-strong)",
+                  background:
+                    motionLevel === level ? "var(--color-accent-soft)" : "var(--color-bg-raised)",
+                }}
+              >
+                <span
+                  className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border"
+                  style={{
+                    borderColor:
+                      motionLevel === level ? "var(--color-accent)" : "var(--color-line-strong)",
+                  }}
+                  aria-hidden
+                >
+                  {motionLevel === level && (
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: "var(--color-accent)" }}
+                    />
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[12.5px] font-medium">
+                    {MOTION_LEVEL_LABEL[level]}
+                  </span>
+                  <span className="block text-[11.5px] text-[var(--color-text-faint)]">
+                    {MOTION_LEVEL_DESCRIPTION[level]}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
         <dl className="mt-2 flex flex-col gap-1.5 text-[12.5px]">
           <Row label="テーマ" value="ダーク（初期リリースはダークのみ）" />
           <Row label="言語" value={locale === "ja" ? "日本語" : locale} />
@@ -136,23 +155,6 @@ export function SettingsClient({
       </section>
     </div>
   );
-}
-
-function subscribeToMotion(onChange: () => void): () => void {
-  const observer = new MutationObserver(onChange);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["data-motion"],
-  });
-  return () => observer.disconnect();
-}
-
-function getMotionSnapshot(): boolean {
-  return document.documentElement.dataset.motion === "off";
-}
-
-function getMotionServerSnapshot(): boolean {
-  return false;
 }
 
 function Row({ label, value }: { label: string; value: string }) {

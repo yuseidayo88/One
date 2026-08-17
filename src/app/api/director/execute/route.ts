@@ -27,13 +27,25 @@ export const POST = defineHandler({ schema, rateLimitMax: 20 }, async ({ body, a
   const cached = recallIdempotent(cacheKey);
   if (cached) return jsonOk(cached);
 
+  // projectId 未指定なら、開始待ちのプロジェクトを対象にする
+  let projectId = body.projectId ?? null;
+  if (!projectId) {
+    const projects = await store.list("projects", orgId, {
+      orderBy: "createdAt",
+      direction: "desc",
+    });
+    projectId =
+      projects.find((p) => p.status === "ready" || p.status === "planning" || p.status === "draft")
+        ?.id ?? null;
+  }
+
   const result = await executeDecision({
     store,
     organizationId: orgId,
     userId: auth.user.id,
     decisionId: body.decisionId,
     selectedOptionIds: body.selectedOptionIds,
-    projectId: body.projectId ?? null,
+    projectId,
   });
 
   const started: string[] = [];
@@ -68,6 +80,7 @@ export const POST = defineHandler({ schema, rateLimitMax: 20 }, async ({ body, a
 
   const payload = {
     message: result.message,
+    activatedProjectId: result.activatedProjectId,
     hiredEmployees: result.hiredEmployees.map((e) => ({ id: e.id, name: e.name, roleKey: e.roleKey })),
     createdTasks: result.createdTasks.map((t) => ({ id: t.id, title: t.title, status: t.status })),
     startedTaskIds: started,

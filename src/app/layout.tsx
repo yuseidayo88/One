@@ -18,10 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang={appConfig.defaultLocale} suppressHydrationWarning>
       <head>
-        {/* 設定で動きを無効化した場合のみ、初期描画前に反映する */}
+        {/* アニメーション設定（標準/最小/OFF）を初期描画前に反映する */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem('ac_motion')==='off'){document.documentElement.dataset.motion='off'}}catch(e){}`,
+            __html: `try{var m=localStorage.getItem('ac_motion');if(m==='off'||m==='minimal'){document.documentElement.dataset.motion=m}}catch(e){}`,
           }}
         />
       </head>

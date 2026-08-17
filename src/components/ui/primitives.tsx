@@ -110,6 +110,95 @@ export const Glyphs = {
   ),
 } satisfies Record<string, ReactNode>;
 
+/** ナビゲーション用アイコン（Glyphs と同じ語彙で使えるようマージする） */
+const NavGlyphsBase = {
+  grid: (
+    <Svg>
+      <rect x="2.4" y="2.4" width="4.8" height="4.8" rx="1.3" {...stroke} />
+      <rect x="8.8" y="2.4" width="4.8" height="4.8" rx="1.3" {...stroke} />
+      <rect x="2.4" y="8.8" width="4.8" height="4.8" rx="1.3" {...stroke} />
+      <rect x="8.8" y="8.8" width="4.8" height="4.8" rx="1.3" {...stroke} />
+    </Svg>
+  ),
+  checklist: (
+    <Svg>
+      <path d="M2.6 4.4l1.4 1.4 2.2-2.4" {...stroke} />
+      <path d="M2.6 11.2l1.4 1.4 2.2-2.4" {...stroke} />
+      <path d="M8.6 4.6h4.8M8.6 11.4h4.8" {...stroke} />
+    </Svg>
+  ),
+  folder: (
+    <Svg>
+      <path d="M2 4.4a1.4 1.4 0 0 1 1.4-1.4h2.6l1.4 1.7h5.2A1.4 1.4 0 0 1 14 6.1v5.5a1.4 1.4 0 0 1-1.4 1.4H3.4A1.4 1.4 0 0 1 2 11.6V4.4Z" {...stroke} />
+    </Svg>
+  ),
+  book: (
+    <Svg>
+      <path d="M3 3.2h4.2a1.8 1.8 0 0 1 1.8 1.8v8a1.5 1.5 0 0 0-1.5-1.5H3V3.2Z" {...stroke} />
+      <path d="M13 3.2H8.8A1.8 1.8 0 0 0 7 5v8a1.5 1.5 0 0 1 1.5-1.5H13V3.2Z" {...stroke} />
+    </Svg>
+  ),
+  plug: (
+    <Svg>
+      <path d="M6 2.4v3.4M10 2.4v3.4" {...stroke} />
+      <path d="M3.8 5.8h8.4v2.4a4.2 4.2 0 0 1-8.4 0V5.8Z" {...stroke} />
+      <path d="M8 12.4v2.2" {...stroke} />
+    </Svg>
+  ),
+  gauge: (
+    <Svg>
+      <path d="M2.6 11.6a6 6 0 1 1 10.8 0" {...stroke} />
+      <path d="M8 11.4l3-3.4" {...stroke} />
+    </Svg>
+  ),
+  gear: (
+    <Svg>
+      <circle cx="8" cy="8" r="2.3" {...stroke} />
+      <path d="M8 1.8v1.9M8 12.3v1.9M14.2 8h-1.9M3.7 8H1.8M12.4 3.6l-1.3 1.3M4.9 11.1l-1.3 1.3M12.4 12.4l-1.3-1.3M4.9 4.9L3.6 3.6" {...stroke} />
+    </Svg>
+  ),
+  shield: (
+    <Svg>
+      <path d="M8 1.9l5 2v4.3c0 3-2.1 5.2-5 5.9-2.9-.7-5-2.9-5-5.9V3.9l5-2Z" {...stroke} />
+    </Svg>
+  ),
+  plus: (
+    <Svg>
+      <path d="M8 3.4v9.2M3.4 8h9.2" {...stroke} strokeWidth={1.9} />
+    </Svg>
+  ),
+  search: (
+    <Svg>
+      <circle cx="7.2" cy="7.2" r="4.3" {...stroke} />
+      <path d="M10.4 10.4l3 3" {...stroke} />
+    </Svg>
+  ),
+  menu: (
+    <Svg>
+      <path d="M2.6 4.4h10.8M2.6 8h10.8M2.6 11.6h10.8" {...stroke} />
+    </Svg>
+  ),
+  panelRight: (
+    <Svg>
+      <rect x="2.2" y="3" width="11.6" height="10" rx="1.6" {...stroke} />
+      <path d="M9.8 3v10" {...stroke} />
+    </Svg>
+  ),
+  pause: (
+    <Svg>
+      <path d="M6.1 4.4v7.2M9.9 4.4v7.2" {...stroke} strokeWidth={1.9} />
+    </Svg>
+  ),
+  attach: (
+    <Svg>
+      <path d="M11.6 7.3l-4.3 4.3a2.6 2.6 0 0 1-3.7-3.7l5-5a1.8 1.8 0 0 1 2.5 2.5l-4.9 5a.9.9 0 0 1-1.2-1.2l4.4-4.4" {...stroke} />
+    </Svg>
+  ),
+} satisfies Record<string, ReactNode>;
+
+/** ステータス用 + ナビ用をまとめた1つの語彙 */
+export const AllGlyphs = { ...Glyphs, ...NavGlyphsBase };
+
 function Badge({
   color,
   glyph,

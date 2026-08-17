@@ -279,13 +279,32 @@ export interface Business {
   createdBy: string;
 }
 
+export type ProjectStatus =
+  | "draft"
+  | "planning"
+  | "ready"
+  | "active"
+  | "paused"
+  | "completed"
+  | "cancelled";
+
+export const PROJECT_STATUSES: ProjectStatus[] = [
+  "draft",
+  "planning",
+  "ready",
+  "active",
+  "paused",
+  "completed",
+  "cancelled",
+];
+
 export interface Project {
   id: string;
   organizationId: string;
   businessId: string | null;
   name: string;
   description: string;
-  status: "active" | "paused" | "archived";
+  status: ProjectStatus;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -310,6 +329,8 @@ export interface Conversation {
   id: string;
   organizationId: string;
   employeeId: string | null;
+  /** 統括AIの会話はプロジェクト単位で 1 本持つ（中央→右パネルで引き継ぐ） */
+  projectId: string | null;
   title: string;
   kind: "director" | "employee";
   createdAt: string;

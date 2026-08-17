@@ -65,6 +65,7 @@ export const POST = defineHandler({ schema, public: true, rateLimitMax: 5 }, asy
     id: newId(),
     organizationId: orgId,
     employeeId: null,
+    projectId: null,
     title: "統括AIとの相談",
     kind: "director",
     createdAt: now,

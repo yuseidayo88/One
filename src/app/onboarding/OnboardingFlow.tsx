@@ -21,6 +21,7 @@ interface PlanOption {
 }
 
 interface PlanResponse {
+  projectId: string;
   decisionId: string;
   blocked: boolean;
   safetyLevel: SafetyLevel;
@@ -108,6 +109,7 @@ export function OnboardingFlow() {
         body: JSON.stringify({
           decisionId: plan.decisionId,
           selectedOptionIds: [...selected],
+          projectId: plan.projectId,
           startImmediately: true,
         }),
       });
@@ -116,7 +118,8 @@ export function OnboardingFlow() {
         setError(json?.error?.message ?? "実行に失敗しました");
         return;
       }
-      router.push("/office");
+      // 実行が通った時点でプロジェクトは進行中。統括AIは右パネルに居る。
+      router.push(`/projects/${json.data?.activatedProjectId ?? plan.projectId}`);
       router.refresh();
     } catch {
       setError("通信に失敗しました");

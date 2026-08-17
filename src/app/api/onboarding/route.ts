@@ -57,22 +57,28 @@ export const POST = defineHandler({ schema, rateLimitMax: 20 }, async ({ body, a
   if (existing[0]) await store.update("businesses", orgId, businessId, record);
   else await store.insert("businesses", record);
 
+  // オンボーディング中のプロジェクトは planning。
+  // 「実行する」を押した時点で active へ進める。
   const projects = await store.list("projects", orgId);
-  if (projects.length === 0) {
-    await store.insert("projects", {
+  let project = projects[0] ?? null;
+  if (!project) {
+    project = await store.insert("projects", {
       id: newId(),
       organizationId: orgId,
       businessId,
-      name: "立ち上げ",
+      name: brief.name || "立ち上げ",
       description: "最初の検証と立ち上げ。",
-      status: "active",
+      status: "planning",
       createdAt: now,
       updatedAt: now,
       createdBy: auth.user.id,
     });
   }
 
-  const conversations = await store.list("conversations", orgId, { filter: { kind: "director" } });
+  // 会話はプロジェクト単位で 1 本。中央→右パネルでそのまま引き継ぐ。
+  const conversations = await store.list("conversations", orgId, {
+    filter: { kind: "director", projectId: project.id },
+  });
   let conversationId = conversations[0]?.id;
   if (!conversationId) {
     conversationId = newId();
@@ -80,6 +86,7 @@ export const POST = defineHandler({ schema, rateLimitMax: 20 }, async ({ body, a
       id: conversationId,
       organizationId: orgId,
       employeeId: null,
+      projectId: project.id,
       title: "統括AIとの相談",
       kind: "director",
       createdAt: now,
@@ -131,6 +138,7 @@ export const POST = defineHandler({ schema, rateLimitMax: 20 }, async ({ body, a
 
   return jsonOk({
     businessId,
+    projectId: project.id,
     conversationId,
     brief,
     blocked: plan.blocked,

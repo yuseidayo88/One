@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, requireSession } from "@/lib/auth/session";
 import { getStore } from "@/lib/db";
 import { availableBalance, getWallet } from "@/lib/credits/ledger";
-import { listNotifications } from "@/lib/notifications/service";
 import { AppShell } from "@/components/shell/AppShell";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -15,10 +14,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const auth = await requireSession();
   const wallet = await getWallet(store, auth.organization.id);
-  const notifications = await listNotifications(store, auth.organization.id, 20);
 
   const businesses = await store.list("businesses", auth.organization.id);
   if (businesses.length === 0) redirect("/onboarding");
+
+  const approvals = await store.list("approvals", auth.organization.id, {
+    filter: { status: "pending" },
+  });
 
   return (
     <AppShell
@@ -28,8 +30,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         organizationName: auth.organization.name,
         isAdmin: auth.isAdmin,
       }}
-      notifications={notifications}
       available={availableBalance(wallet)}
+      pendingApprovals={approvals.length}
     >
       {children}
     </AppShell>

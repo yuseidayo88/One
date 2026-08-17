@@ -12,6 +12,7 @@ setup("ログインしてセッションを保存する", async ({ page }) => {
   await page.fill('input[type="password"]', "demo1234");
   await page.click('button[type="submit"]');
   await page.waitForURL("**/office");
-  await expect(page.getByPlaceholder("統括AIに相談する", { exact: false })).toBeVisible();
+  // オフィスは「会社の状態と社員一覧」。相談欄はここには無い。
+  await expect(page.getByTestId("office-employee-row").first()).toBeVisible();
   await page.context().storageState({ path: STORAGE_STATE });
 });

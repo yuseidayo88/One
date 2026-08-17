@@ -147,6 +147,19 @@ html[data-motion="off"] *::after {
   transition-duration: 0.001ms !important;
 }
 
+/* 最小: 位置は動かさず、短いフェードだけ残す */
+html[data-motion="minimal"] *,
+html[data-motion="minimal"] *::before,
+html[data-motion="minimal"] *::after {
+  animation-duration: 120ms !important;
+  transition-duration: 120ms !important;
+}
+
+html[data-motion="minimal"] .ac-enter,
+html[data-motion="minimal"] .ac-rise {
+  animation-name: ac-fade-in !important;
+}
+
 /* ── 共通コンポーネントクラス ─────────────────────────
    @layer components に入れることで、Tailwind のユーティリティ
    （hidden / lg:hidden など）が常に優先される。
@@ -443,4 +456,14 @@ html[data-motion="off"] *::after {
   color: var(--color-accent);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* 進捗グラフの線を描き足していくアニメーション */
+@keyframes ac-draw {
+  from {
+    stroke-dashoffset: 2000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
